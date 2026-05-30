@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>𝖵𝖤𝖫𝖳𝖱𝖨𝖷 𝖷𝖬𝖣 — Dashboard</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #06070d;
+      --bg2: #0d0f1a;
+      --bg3: #131627;
+      --border: #1e2235;
+      --accent: #6c63ff;
+      --accent2: #00d4ff;
+      --accent3: #ff6b6b;
+      --green: #00e676;
+      --yellow: #ffd740;
+      --text: #e8eaf6;
+      --text2: #8892b0;
+      --glow: 0 0 20px rgba(108,99,255,0.3);
+      --glow2: 0 0 20px rgba(0,212,255,0.3);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 50%, rgba(108,99,255,0.05) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, rgba(0,212,255,0.05) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 40px 0 32px;
+    }
+    .header-logo {
+      font-size: 48px;
+      margin-bottom: 12px;
+      filter: drop-shadow(0 0 12px rgba(108,99,255,0.6));
+    }
+    .header h1 {
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+    .header p {
+      color: var(--text2);
+      font-size: 0.9rem;
+      margin-top: 8px;
+    }
+
+    /* Status bar */
+    .status-bar {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .status-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .status-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--text2);
+      flex-shrink: 0;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .status-dot.connected { background: var(--green); box-shadow: 0 0 10px var(--green); }
+    .status-dot.connecting { background: var(--yellow); box-shadow: 0 0 10px var(--yellow); animation: blink 1s infinite; }
+    .status-dot.pairing { background: var(--accent2); box-shadow: 0 0 10px var(--accent2); animation: blink 1s infinite; }
+    .status-dot.error, .status-dot.logged_out { background: var(--accent3); box-shadow: 0 0 10px var(--accent3); }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .status-info h3 { font-size: 1rem; font-weight: 600; }
+    .status-info p { font-size: 0.8rem; color: var(--text2); margin-top: 2px; }
+
+    .status-badge {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      border: 1px solid;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-disconnected { border-color: var(--text2); color: var(--text2); background: rgba(136,146,176,0.08); }
+    .badge-connected { border-color: var(--green); color: var(--green); background: rgba(0,230,118,0.08); }
+    .badge-connecting { border-color: var(--yellow); color: var(--yellow); background: rgba(255,215,64,0.08); }
+    .badge-pairing { border-color: var(--accent2); color: var(--accent2); background: rgba(0,212,255,0.08); }
+    .badge-error, .badge-logged_out { border-color: var(--accent3); color: var(--accent3); background: rgba(255,107,107,0.08); }
+
+    /* Stats grid */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .stat-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+    .stat-label { font-size: 0.75rem; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+    .stat-value { font-size: 1.2rem; font-weight: 700; color: var(--text); }
+    .stat-value.accent { color: var(--accent); }
+    .stat-value.accent2 { color: var(--accent2); }
+    .stat-value.green { color: var(--green); }
+
+    /* Cards */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin-bottom: 20px;
+      transition: border-color 0.3s;
+    }
+    .card:hover { border-color: rgba(108,99,255,0.3); }
+    .card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title span { color: var(--text2); font-weight: 400; font-size: 0.85rem; }
+
+    /* Form */
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 0.85rem; color: var(--text2); margin-bottom: 8px; font-weight: 500; }
+    .form-input {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 1rem;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input:focus { border-color: var(--accent); box-shadow: var(--glow); }
+    .form-input::placeholder { color: var(--text2); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #8b80ff);
+      color: #fff;
+      width: 100%;
+    }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: var(--glow); }
+    .btn-secondary {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-secondary:hover:not(:disabled) { border-color: var(--accent); }
+    .btn-danger {
+      background: rgba(255,107,107,0.1);
+      border: 1px solid var(--accent3);
+      color: var(--accent3);
+    }
+    .btn-danger:hover:not(:disabled) { background: rgba(255,107,107,0.2); }
+
+    /* Pairing code display */
+    .pairing-code {
+      display: none;
+      background: var(--bg3);
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 16px;
+      text-align: center;
+    }
+    .pairing-code.show { display: block; animation: fadeIn 0.4s ease; }
+    .pairing-code p { color: var(--text2); font-size: 0.85rem; margin-bottom: 12px; }
+    .pairing-code-value {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: 8px;
+      color: var(--accent2);
+      text-shadow: 0 0 20px rgba(0,212,255,0.4);
+      font-family: 'Courier New', monospace;
+    }
+    .pairing-steps {
+      margin-top: 14px;
+      padding: 12px;
+      background: rgba(0,212,255,0.05);
+      border-radius: 8px;
+      font-size: 0.8rem;
+      color: var(--text2);
+      text-align: left;
+      line-height: 1.8;
+    }
+    .pairing-steps strong { color: var(--text); }
+
+    /* QR code */
+    .qr-wrap {
+      display: none;
+      text-align: center;
+      padding: 16px 0;
+    }
+    .qr-wrap.show { display: block; animation: fadeIn 0.4s ease; }
+    .qr-wrap img {
+      border-radius: 12px;
+      border: 2px solid var(--border);
+      max-width: 220px;
+    }
+    .qr-wrap p { margin-top: 10px; font-size: 0.8rem; color: var(--text2); }
+
+    /* Alert */
+    .alert {
+      display: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      margin-top: 12px;
+    }
+    .alert.show { display: block; animation: fadeIn 0.3s ease; }
+    .alert-error { background: rgba(255,107,107,0.1); border: 1px solid var(--accent3); color: var(--accent3); }
+    .alert-success { background: rgba(0,230,118,0.1); border: 1px solid var(--green); color: var(--green); }
+    .alert-info { background: rgba(0,212,255,0.1); border: 1px solid var(--accent2); color: var(--accent2); }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--bg3); padding: 4px; border-radius: 10px; }
+    .tab {
+      flex: 1;
+      padding: 9px;
+      text-align: center;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text2);
+      transition: all 0.2s;
+      border: none;
+      background: transparent;
+    }
+    .tab.active { background: var(--bg2); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+
+    /* Instructions */
+    .steps { list-style: none; counter-reset: steps; }
+    .steps li {
+      counter-increment: steps;
+      padding: 12px 12px 12px 48px;
+      position: relative;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+      color: var(--text2);
+      line-height: 1.5;
+    }
+    .steps li:last-child { border-bottom: none; }
+    .steps li::before {
+      content: counter(steps);
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .steps li strong { color: var(--text); }
+
+    /* Platform badges */
+    .platforms {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .platform-badge {
+      padding: 6px 14px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: var(--text2);
+      font-weight: 500;
+    }
+
+    /* Loader */
+    .loader {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    .loading .loader { display: block; }
+    .loading .btn-text { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 24px 0;
+      color: var(--text2);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      margin-top: 20px;
+    }
+    .footer a { color: var(--accent); text-decoration: none; }
+
+    @media (max-width: 480px) {
+      .status-bar { flex-direction: column; }
+      .pairing-code-value { font-size: 1.6rem; letter-spacing: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="header">
+      <div class="header-logo">⚡</div>
+      <h1>𝖵𝖤𝖫𝖳𝖱𝖨𝖷 𝖷𝖬𝖣</h1>
+      <p>Dashboard de connexion — Bot WhatsApp Multi-Groupe</p>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-left">
+        <div class="status-dot" id="statusDot"></div>
+        <div class="status-info">
+          <h3 id="statusText">Chargement…</h3>
+          <p id="statusSub">Connexion au serveur…</p>
+        </div>
+      </div>
+      <span class="status-badge badge-disconnected" id="statusBadge">—</span>
+    </div>
+
+    <div class="stats" id="statsGrid">
+      <div class="stat-card">
+        <div class="stat-label">Numéro</div>
+        <div class="stat-value accent" id="statNumber">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Uptime</div>
+        <div class="stat-value accent2" id="statUptime">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Commandes</div>
+        <div class="stat-value green" id="statCmds">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Version</div>
+        <div class="stat-value" id="statVersion">—</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        🔗 Connexion WhatsApp <span>— entre ton numéro pour lier le bot</span>
+      </div>
+
+      <div class="tabs">
+        <button class="tab active" id="tabPairing" onclick="switchTab('pairing')">Code de couplage</button>
+        <button class="tab" id="tabQr" onclick="switchTab('qr')">QR Code</button>
+      </div>
+
+      <div id="pairingPanel">
+        <div class="form-group">
+          <label class="form-label" for="phoneInput">📱 Numéro WhatsApp (format international sans +)</label>
+          <input type="tel" class="form-input" id="phoneInput" placeholder="Ex: 224669288332" maxlength="20" />
+        </div>
+        <button class="btn btn-primary" id="pairBtn" onclick="requestPair()">
+          <div class="loader" id="pairLoader"></div>
+          <span class="btn-text">⚡ Obtenir le code de couplage</span>
+        </button>
+        <div class="pairing-code" id="pairingCodeBox">
+          <p>Entre ce code dans WhatsApp :</p>
+          <div class="pairing-code-value" id="pairingCodeValue">— — — —</div>
+          <div class="pairing-steps">
+            <strong>Comment lier :</strong><br>
+            1. Ouvre WhatsApp sur ton téléphone<br>
+            2. Va dans <strong>Paramètres → Appareils liés</strong><br>
+            3. Appuie sur <strong>"Lier un appareil"</strong><br>
+            4. Sélectionne <strong>"Lier avec un numéro de téléphone"</strong><br>
+            5. Entre le code affiché ci-dessus
+          </div>
+        </div>
+        <div class="alert" id="pairAlert"></div>
+      </div>
+
+      <div id="qrPanel" style="display:none;">
+        <div class="qr-wrap show" id="qrWrap">
+          <p style="color:var(--text2);margin-bottom:12px;font-size:0.85rem;">Le QR code se charge… <br>Si indisponible, utilise le code de couplage.</p>
+          <img id="qrImage" src="" alt="QR Code" style="display:none;" />
+          <p id="qrMsg" style="font-size:0.8rem;color:var(--text2);margin-top:8px;"></p>
+        </div>
+        <button class="btn btn-secondary" style="margin-top:12px;" onclick="loadQr()">🔄 Actualiser le QR code</button>
+      </div>
+
+      <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border); display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn btn-danger" style="width:auto;flex:1;" onclick="disconnectBot()">🔌 Déconnecter</button>
+        <button class="btn btn-secondary" style="flex:1;" onclick="loadStatus()">🔄 Rafraîchir</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📖 Guide de déploiement</div>
+      <ol class="steps">
+        <li><strong>Fork ce repo</strong> sur ton compte GitHub depuis <strong>github.com</strong></li>
+        <li><strong>Crée un compte</strong> sur la plateforme de ton choix : Railway, Render, Heroku, Koyeb ou Replit</li>
+        <li><strong>Importe le repo</strong> GitHub dans la plateforme — elle détecte automatiquement Node.js</li>
+        <li>Configure la variable d'environnement <strong>OWNER_NUMBERS</strong> avec ton numéro WhatsApp</li>
+        <li>Démarre le déploiement — le bot démarrera et ce dashboard sera accessible</li>
+        <li>Ouvre l'URL publique et <strong>entre ton numéro</strong> pour générer le code de couplage</li>
+        <li>Entre le code dans WhatsApp → Appareils liés → <strong>Lier un appareil</strong></li>
+        <li>✅ Le bot est maintenant actif et répondra aux commandes WhatsApp !</li>
+      </ol>
+      <div style="margin-top:16px;">
+        <p style="font-size:0.82rem;color:var(--text2);margin-bottom:8px;">Compatible avec :</p>
+        <div class="platforms">
+          <span class="platform-badge">🚂 Railway.app</span>
+          <span class="platform-badge">🖥️ Render.com</span>
+          <span class="platform-badge">⚙️ Heroku.app</span>
+          <span class="platform-badge">🌊 Koyeb.com</span>
+          <span class="platform-badge">🔁 Replit.app</span>
+          <span class="platform-badge">🐳 Docker / VPS</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <p>𝖵𝖤𝖫𝖳𝖱𝖨𝖷 𝖷𝖬𝖣 v2.0 — Dev by NATSUorDENTSU</p>
+    <p style="margin-top:4px;">Propulsé par <a href="https://github.com/WhiskeySockets/Baileys" target="_blank">@whiskeysockets/baileys</a></p>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

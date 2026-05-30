@@ -1,0 +1,22 @@
+name: veltrix-xmd
+services:
+  - name: web
+    type: web
+    git:
+      branch: main
+    build:
+      buildpack: nodejs
+    run:
+      command: node src/index.js
+    env:
+      - name: NODE_ENV
+        value: production
+      - name: OWNER_NUMBERS
+        value: ""
+    ports:
+      - port: 3000
+        protocol: http
+    healthchecks:
+      - path: /api/status
+        port: 3000
+        protocol: http

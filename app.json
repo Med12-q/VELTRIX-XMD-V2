@@ -1,0 +1,31 @@
+{
+  "name": "VELTRIX XMD",
+  "description": "Bot WhatsApp multi-groupe avec dashboard web — Fork & Deploy",
+  "repository": "https://github.com/varnox/veltrix-xmd",
+  "keywords": ["whatsapp", "bot", "baileys"],
+  "env": {
+    "OWNER_NUMBERS": {
+      "description": "Ton numéro WhatsApp (format international sans +, séparés par virgule pour plusieurs)",
+      "required": true
+    },
+    "PREFIX": {
+      "description": "Préfixe des commandes (ex: . ou ! ou /)",
+      "value": "."
+    },
+    "SESSION_SECRET": {
+      "description": "Clé secrète de session",
+      "generator": "secret"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "basic"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}
