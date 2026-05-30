@@ -32,7 +32,7 @@
 ---
 
 <p align="center">
-  <img src="https://files.catbox.moe/cceb4k.jpg" width="720" style="border-radius:16px;" alt="VELTRIX XMD V2 Banner"/>
+  <img src="https://files.catbox.moe/x3q7nd.jpg" width="720" style="border-radius:16px;" alt="VELTRIX XMD V2 Banner"/>
 </p>
 
 ---
